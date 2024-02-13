@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+#[ORM\Entity]
+class Product
+{
+    #[ORM\Id]
+    #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true])]
+    #[ORM\GeneratedValue]
+    #[Serializer\Groups(['product.with_store_and_user', 'product.with_user'])]
+    public int $id;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Serializer\Groups(['product.with_store_and_user', 'product.with_user'])]
+    public string $title;
+
+    #[ORM\ManyToOne(fetch: 'EAGER')]
+    #[Serializer\Groups(['product.with_store_and_user'])]
+    public Store $store;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    public \DateTimeImmutable $createdAt;
+
+    public function __construct(string $title, Store $store, ?\DateTimeImmutable $createdAt = null)
+    {
+        $this->title = $title;
+        $this->store = $store;
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+    }
+
+    #[Serializer\Groups(['product.with_user'])]
+    public function getUser(): User
+    {
+        return $this->store->user;
+    }
+}
